@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Farmer ID Card Generator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{--bg:#f1efe6;--panel:#fffdf7;--ink:#1d2a21;--muted:#5d6b61;--line:#d6d2c2;--green:#1f5d3a;--green2:#2f7d52;--wheat:#e3b84a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121915;--panel:#1b251f;--ink:#eef0e6;--muted:#a3b0a6;--line:#33433a;--green:#4aa876;--green2:#5cbd88}}
+:root[data-theme="dark"]{--bg:#121915;--panel:#1b251f;--ink:#eef0e6;--muted:#a3b0a6;--line:#33433a;--green:#4aa876;--green2:#5cbd88}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Mukta",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.7rem;font-weight:800;margin:0 0 2px;letter-spacing:-.01em}
+.sub{margin:0 0 20px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:24px;align-items:start}
+@media (max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.panel h2{font-size:1.05rem;margin:0 0 12px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.row2{grid-template-columns:1fr}}
+label{display:block;font-weight:600;font-size:.88rem;margin:10px 0 4px}
+label b{color:#c0392b}
+input,select{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--wheat);outline-offset:1px}
+.chk{display:flex;gap:8px;align-items:flex-start;font-weight:600;margin-top:14px}
+.chk input{width:auto;margin-top:6px}
+.land{overflow-x:auto;margin-top:6px}
+.land table{border-collapse:collapse;min-width:640px;width:100%}
+.land th{font-size:.78rem;text-align:left;padding:4px;color:var(--muted)}
+.land td{padding:3px}
+.land input{padding:6px 8px;font-size:.9rem}
+button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:10px 16px;cursor:pointer}
+.btn-g{background:var(--green);color:#fff}
+.btn-g:hover{background:var(--green2)}
+.btn-x{background:transparent;color:#c0392b;padding:6px 8px}
+.btn-o{background:transparent;color:var(--green);border:1px solid var(--green)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.stage h3{font-size:.9rem;margin:14px 0 6px;color:var(--muted);font-weight:600}
+.msg{margin-top:10px;font-size:.88rem;color:var(--muted)}
+.qrt{margin:8px 0 0;padding:10px 12px;border:1px dashed var(--line);border-radius:6px;font:inherit;font-size:.82rem;white-space:pre-wrap;color:var(--muted)}
+
+/* ---- card: 750x475 (CR80 ratio), fixed light colours so the PDF always looks the same ---- */
+.card{width:750px;height:475px;position:relative;overflow:hidden;background:#fff;color:#1a2340;border-radius:20px;border:3px solid #1e5a2a;font-family:"Mukta",system-ui,sans-serif;line-height:1.2;margin-bottom:6px}
+.card>*{position:absolute}
+.logo{left:24px;top:10px;display:flex;align-items:center;gap:8px;color:#1f7a35;font-size:34px;font-weight:800;line-height:1;white-space:nowrap}
+.ttl{left:230px;width:360px;top:20px;text-align:center;font-size:40px;font-weight:800;color:#e8601c;line-height:1.15}
+.orn{left:342px;top:74px}
+.nm{left:262px;width:305px;top:90px;font-size:30px;line-height:1.2;font-weight:800;color:#1a2340;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nl{left:262px;width:305px;top:126px;font-size:26px;line-height:1.35;font-weight:700;color:#1b7a4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.photo{left:50px;top:116px;width:166px;height:198px;border:2px solid #cfd6df;border-radius:8px;background:#e9edf0 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:15px;color:#778}
+.lb{left:262px;font-size:22px;font-weight:600;color:#5c6b8a;white-space:nowrap}
+.vl{left:352px;width:215px;font-family:Consolas,"DejaVu Sans Mono","Courier New",monospace;font-size:22px;font-weight:800;color:#1a2340;white-space:nowrap}
+.qr{left:582px;top:162px;width:124px;height:124px;background:#fff;border:3px solid #1c2535;border-radius:10px;overflow:hidden}
+.qr img{width:100%;height:100%;display:block}
+.pill{left:168px;top:332px;width:414px;height:56px;background:#fff;border:1px solid #d5dde6;border-radius:28px;box-shadow:0 3px 9px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;font-size:29px;font-weight:800;color:#1a2340;white-space:pre}
+.foot{left:0;right:0;bottom:0;height:64px;background:#17501e;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 34px;color:#fff}
+.foot .tx{flex:1;min-width:0;overflow:hidden;display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;white-space:nowrap}
+.foot .tx span{flex:none}
+.foot .tx svg{width:38px;height:9px;flex:none}
+.foot .fa{flex:none;white-space:nowrap;border-left:2px solid rgba(255,255,255,.55);margin-left:16px;padding-left:20px;font-size:31px;font-weight:800;line-height:1}
+.foot .fa b{color:#f5c518}
+.bk{left:24px;right:26px;top:68px;z-index:2}
+.ad{font-size:22px;font-weight:700;color:#1a2340;line-height:1.25;display:flex;gap:10px}
+.lh{margin:16px 0 9px;font-size:22px;font-weight:800;color:#1b7a4a;line-height:1.2;display:flex;align-items:center;gap:12px}
+.lh::after{content:"";flex:1;height:2px;background:#d9e8cf}
+.ad i{font-style:normal;color:#5c6b8a;font-weight:600;flex:none}
+.bt{border:1px solid #cfd8e3;border-radius:10px;overflow:hidden;background:#fff}
+.lt{width:100%;border-collapse:collapse;font-size:17px}
+.lt th{background:#e6f4de;color:#1b8a3f;padding:7px 6px;font-weight:800;border-right:1px solid #d3dfe9;text-align:center}
+.lt td{padding:7px 6px;font-weight:700;text-align:center;border-top:1px solid #dde6ee;border-right:1px solid #e3eaf1;font-family:Consolas,"DejaVu Sans Mono",monospace}
+.lt th:last-child,.lt td:last-child{border-right:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Farmer ID Card Generator</h1>
+  <p class="sub">Fill in the details, check the preview, then download the PDF or PNG. Each download costs ₹15, paid by UPI.</p>
+  <div class="grid">
+    <form class="panel" id="f" autocomplete="off" novalidate>
+      <h2>Farmer details</h2>
+      <div class="row2">
+        <div><label for="ne">Name (English) <b>*</b></label><input id="ne" required value="Ramesh Patil"></div>
+        <div><label for="nl">Name (local language)</label><input id="nl" value="रमेश पाटील"></div>
+        <div><label for="dob">Date of birth <b>*</b></label><input id="dob" type="date" required value="1985-01-01"></div>
+        <div><label for="sx">Gender</label><select id="sx"><option>Male</option><option>Female</option><option>Other</option></select></div>
+        <div><label for="mo">Mobile <b>*</b></label><input id="mo" required inputmode="numeric" maxlength="10" pattern="[0-9]{10}" value="9876543210"></div>
+        <div><label for="aa">Aadhaar <b>*</b></label><input id="aa" required inputmode="numeric" maxlength="12" pattern="[0-9]{12}" value="123456789012"></div>
+        <div><label for="fi">Farmer ID <b>*</b></label><input id="fi" required inputmode="numeric" maxlength="14" value="11122233344"></div>
+        <div><label for="ph">Farmer photo</label><input id="ph" type="file" accept="image/*"></div>
+      </div>
+      <label for="ad">Address <b>*</b></label><input id="ad" required value="Near Primary School, Main Road, Sample Village, Pune - 412101">
+      <label for="br">Your brand name (top-left of the card)</label><input id="br" maxlength="22" value="Farmer Card">
+      <label class="chk"><input type="checkbox" id="full" checked> Show the full Aadhaar number on the card (untick to show only the last 4 digits)</label>
+
+      <h2 style="margin-top:20px">Land details</h2>
+      <div class="land"><table>
+        <thead><tr><th>State</th><th>Sub dist.</th><th>Village</th><th>S. No</th><th>S/S</th><th>Area (ha)</th><th></th></tr></thead>
+        <tbody id="lb"></tbody></table></div>
+      <div class="bar"><button type="button" class="btn-o" id="addrow">Add row</button></div>
+
+      <div class="bar" style="margin-top:22px">
+        <button type="button" class="btn-g" id="dpdf">Download PDF (4x6) – ₹15</button>
+        <button type="button" class="btn-o" id="dpng">Download PNG – ₹15</button>
+        <button type="button" class="btn-o" id="reset">Reset</button>
+      </div>
+      <p class="msg" id="msg" role="status"></p>
+    </form>
+
+    <div class="panel">
+      <h2>Card preview</h2>
+      <div class="stage" id="stage"><div class="zm" id="zm">
+        <h3>Front</h3>
+        <div class="card" id="front">
+          <svg style="left:560px;top:0" width="190" height="150" viewBox="0 0 190 150"><defs><linearGradient id="lg1" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0f6b2a"/><stop offset="1" stop-color="#4cb64a"/></linearGradient></defs><path d="M58 142C38 82 88 22 178 8C172 72 130 128 58 142Z" fill="url(#lg1)"/><path d="M62 138C95 90 130 50 172 14" stroke="#d8f0cf" stroke-width="2" fill="none"/><path d="M100 124C94 82 130 46 186 38C186 82 160 114 100 124Z" fill="#3fa84a"/><path d="M20 72C30 42 60 26 92 22C86 52 60 72 20 72Z" fill="#62c45c"/><circle cx="26" cy="100" r="13" fill="#fff" fill-opacity=".7" stroke="#7fb8aa" stroke-width="2"/><circle cx="12" cy="128" r="6" fill="none" stroke="#9bc9bd" stroke-width="2"/><circle cx="48" cy="118" r="4" fill="none" stroke="#9bc9bd" stroke-width="2"/></svg>
+          <div class="logo"><svg width="40" height="40" viewBox="0 0 26 26"><path d="M3 22C3 10 11 3 23 3c0 12-7 19-17 19" fill="#2e9a4f"/><path d="M3 22L16 9" stroke="#fff" stroke-width="1.6" fill="none"/></svg><span id="c_br"></span></div>
+          <div class="ttl">मेरा किसान कार्ड</div>
+          <svg class="orn" width="130" height="14" viewBox="0 0 130 14"><path d="M0 7H52M78 7H130" stroke="#1f5a2a" stroke-width="2"/><path d="M65 1L71 7L65 13L59 7Z" fill="#1f5a2a"/><circle cx="54" cy="7" r="2" fill="#1f5a2a"/><circle cx="76" cy="7" r="2" fill="#1f5a2a"/></svg>
+          <div class="nm" id="c_ne"></div>
+          <div class="nl" id="c_nl"></div>
+          <div class="photo" id="pv">Photo</div>
+          <div class="lb" style="top:172px">जन्म:</div><div class="vl" style="top:172px" id="c_dob"></div>
+          <div class="lb" style="top:208px">लिंग:</div><div class="vl" style="top:208px" id="c_sx"></div>
+          <div class="lb" style="top:244px">मोबाईल:</div><div class="vl" style="top:244px" id="c_mo"></div>
+          <div class="lb" style="top:280px">आधार:</div><div class="vl" style="top:280px" id="c_aa"></div>
+          <div class="qr"><img id="qrimg" alt="QR code with the farmer's key details"></div>
+          <svg style="left:0;top:318px" width="744" height="96" viewBox="0 0 744 96" preserveAspectRatio="none"><defs><linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e5dc6a"/><stop offset="1" stop-color="#7cb342"/></linearGradient></defs><path d="M0 40Q120 6 250 34T500 24T744 14V96H0Z" fill="#d3e9ae"/><path d="M0 58Q180 30 380 56T744 40V96H0Z" fill="url(#fg)"/><path d="M0 76Q220 56 420 74T744 66V96H0Z" fill="#8cc152"/><g transform="translate(76 40)"><rect x="6" y="14" width="46" height="16" rx="3" fill="#2e7d32"/><rect x="18" y="0" width="22" height="18" rx="3" fill="#3a8f3e"/><rect x="48" y="4" width="3" height="12" fill="#333"/><circle cx="14" cy="34" r="14" fill="#222"/><circle cx="14" cy="34" r="6" fill="#f2c230"/><circle cx="56" cy="38" r="9" fill="#222"/><circle cx="56" cy="38" r="4" fill="#f2c230"/></g></svg>
+          <div class="pill" id="c_fi">Farmer Id: </div>
+          <div class="foot"><div class="tx"><span>This card is only for personal use not for Govt. issue card.</span><svg width="56" height="12" viewBox="0 0 56 12"><path d="M0 6H52M46 1L53 6L46 11" stroke="#fff" stroke-width="1.6" fill="none"/></svg></div><div class="fa"><span>फार्मर</span> <b>आईडी</b></div></div>
+        </div>
+        <h3>Back</h3>
+        <div class="card" id="back">
+          <svg style="left:590px;top:0" width="160" height="100" viewBox="0 0 190 150"><path d="M58 142C38 82 88 22 178 8C172 72 130 128 58 142Z" fill="url(#lg1)"/><path d="M100 124C94 82 130 46 186 38C186 82 160 114 100 124Z" fill="#3fa84a"/><path d="M20 72C30 42 60 26 92 22C86 52 60 72 20 72Z" fill="#62c45c"/><path d="M0 110Q60 100 120 118" stroke="#6fb4e6" stroke-width="3" fill="none" opacity=".6"/></svg>
+          <div class="logo"><svg width="40" height="40" viewBox="0 0 26 26"><path d="M3 22C3 10 11 3 23 3c0 12-7 19-17 19" fill="#2e9a4f"/><path d="M3 22L16 9" stroke="#fff" stroke-width="1.6" fill="none"/></svg><span id="c_br2"></span></div>
+          <div class="bk"><div class="ad"><i>पता:</i><span id="c_ad"></span></div><div class="lh">Land details</div>
+          <div class="bt"><table class="lt"><thead><tr><th>State</th><th>Sub Dist</th><th>Vill</th><th>Gata.No</th><th>Survey No</th><th>Area</th></tr></thead><tbody id="c_land"></tbody></table></div></div>
+          <svg style="left:0;top:340px" width="744" height="70" viewBox="0 0 744 70" preserveAspectRatio="none"><path d="M0 40Q120 10 260 34T520 28T744 24V70H0Z" fill="#d3e9ae"/><path d="M0 56Q200 36 420 54T744 46V70H0Z" fill="#8cc152"/><ellipse cx="610" cy="52" rx="110" ry="9" fill="none" stroke="#4fa3d8" stroke-width="3" opacity=".6"/><ellipse cx="610" cy="52" rx="60" ry="5" fill="none" stroke="#4fa3d8" stroke-width="3" opacity=".8"/><path d="M30 60C20 40 40 24 62 20C62 40 52 56 30 60Z" fill="#3fa84a"/></svg>
+          <div class="foot"><div class="tx"><span>This card is only for personal use not for Govt. issue card.</span><svg width="56" height="12" viewBox="0 0 56 12"><path d="M0 6H52M46 1L53 6L46 11" stroke="#fff" stroke-width="1.6" fill="none"/></svg></div><div class="fa"><span>फार्मर</span> <b>आईडी</b></div></div>
+        </div>
+      </div></div>
+      <p class="msg" style="margin-bottom:0">What the QR code shows when scanned:</p>
+      <pre class="qrt" id="qrtxt"></pre>
+    </div>
+  </div>
+</div>
+
+<div id="pay" style="position:fixed;inset:0;background:rgba(10,20,14,.82);display:none;align-items:center;justify-content:center;padding:16px;z-index:60;overflow:auto">
+  <div class="panel" style="max-width:420px;width:100%;text-align:center" role="dialog" aria-modal="true" aria-labelledby="pt">
+    <h2 id="pt" style="font-size:1.25rem">Pay ₹15 to download</h2>
+    <p class="msg" style="margin:0 0 8px">Scan with any UPI app (GPay, PhonePe, Paytm, BHIM) or tap the button on your phone.</p>
+    <img id="upiqr" alt="UPI payment QR code for ₹15" width="190" height="190" style="background:#fff;padding:8px;border-radius:8px;border:1px solid var(--line)">
+    <p style="margin:6px 0"><b>₹15</b> &nbsp;·&nbsp; UPI ID: <span id="upiid"></span></p>
+    <a id="upilink" class="btn-g" style="display:inline-block;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:700">Pay ₹15 with UPI app</a>
+    <label for="utr" style="text-align:left">After paying, enter the 12-digit UTR / transaction ID</label>
+    <input id="utr" inputmode="numeric" maxlength="12" placeholder="e.g. 412345678901">
+    <div class="bar" style="justify-content:center"><button class="btn-g" id="paid">I have paid – Download</button><button class="btn-o" id="pcancel">Cancel</button></div>
+    <p class="msg" id="pmsg" role="status"></p>
+  </div>
+</div>
+
+<div id="gate" style="position:fixed;inset:0;background:rgba(10,20,14,.82);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50">
+  <div class="panel" style="max-width:520px;width:100%" role="dialog" aria-modal="true" aria-labelledby="gt">
+    <h2 id="gt" style="font-size:1.25rem">This is not a government portal</h2>
+    <p style="margin:0 0 8px"><b>Shopkeepers and service providers:</b> tell each farmer clearly that this card is unofficial. It is only a convenient way to keep Farmer ID information. If the government issues an official card later, this one will not replace it.</p>
+    <p style="margin:0 0 14px"><b>Farmers:</b> use this card only to store your information.</p>
+    <label style="display:flex;gap:8px;align-items:flex-start;font-weight:600"><input type="checkbox" id="ok" style="width:auto;margin-top:6px"> I have understood all of the above</label>
+    <div class="bar"><button class="btn-g" id="go" disabled>I understand</button><button class="btn-o" id="no">I do not agree</button></div>
+    <p class="msg" id="gmsg"></p>
+  </div>
+</div>
+
+<script>
+/* ===== EDIT THESE: your payment settings ===== */
+window.PAY_CONFIG={
+  upiId:"9632643532-3@ybl",        // your real UPI ID (money goes here)
+  payeeName:"Maha E Seva Kendra Ravet",  // name shown in the UPI app
+  qrImage:"",                  // optional: your own QR image, e.g. "my-qr.png" (upload it next to this file)
+  amount:15,                   // price per download in rupees
+  verifyUrl:""                 // optional: your server URL that confirms a UTR (see notes)
+};
+</script>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var photoURL="";
+  var DEF=[["MAHARASHTRA","Sample Taluka","Sample Village","12","1 A","0.360000"]];
+  var LBL=["State","Sub district","Village","Gat number","Survey number","Area in hectares"];
+  try{qrcode.stringToBytes=qrcode.stringToBytesFuncs["UTF-8"]}catch(e){}
+
+  function addRow(v){
+    v=v||["","","","","",""];
+    var tr=document.createElement("tr");
+    for(var i=0;i<6;i++){
+      var td=document.createElement("td"),inp=document.createElement("input");
+      inp.value=v[i];inp.setAttribute("aria-label",LBL[i]);if(i===5)inp.inputMode="decimal";
+      inp.addEventListener("input",render);td.appendChild(inp);tr.appendChild(td);
+    }
+    var tdx=document.createElement("td"),b=document.createElement("button");
+    b.type="button";b.className="btn-x";b.textContent="Remove";b.addEventListener("click",function(){tr.remove();render()});
+    tdx.appendChild(b);tr.appendChild(tdx);$("lb").appendChild(tr);render();
+  }
+  function fmtDate(s){var p=s.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:s}
+  function cell(tr,t){var td=document.createElement("td");td.textContent=t;tr.appendChild(td)}
+  function groups(a){return a.replace(/(\d{4})(?=\d)/g,"$1 ")}
+  function fit(el,start,min){var s=start;el.style.fontSize=s+"px";while(el.scrollWidth>el.clientWidth-4&&s>min){s--;el.style.fontSize=s+"px"}}
+
+  function render(){
+    var ne=$("ne").value||"Name";
+    $("c_ne").textContent=ne;$("c_nl").textContent=$("nl").value;
+    fit($("c_ne"),30,22);fit($("c_nl"),26,20);
+    [].forEach.call(document.querySelectorAll(".foot .tx"),function(e){fit(e,17,11)});
+    $("c_br").textContent=$("br").value;$("c_br2").textContent=$("br").value;
+    $("c_dob").textContent=fmtDate($("dob").value);
+    $("c_sx").textContent=$("sx").value;
+    $("c_mo").textContent=$("mo").value;
+    var a=$("aa").value.replace(/\D/g,"");
+    $("c_aa").textContent=$("full").checked?a:(a.length>=4?"XXXXXXXX"+a.slice(-4):a);
+    $("c_fi").textContent="Farmer Id: "+$("fi").value;
+    $("c_ad").textContent=$("ad").value;
+    var pv=$("pv");
+    if(photoURL){pv.style.backgroundImage="url("+photoURL+")";pv.textContent=""}else{pv.style.backgroundImage="none";pv.textContent="Photo"}
+
+    var body=$("c_land");body.textContent="";var tot=0,rows=$("lb").rows,vill="",n=0;
+    for(var i=0;i<rows.length;i++){
+      var v=[].map.call(rows[i].querySelectorAll("input"),function(x){return x.value});
+      if(!v.join(""))continue;
+      if(!vill&&v[2])vill=v[2];
+      tot+=parseFloat(v[5])||0;n++;
+      var tr=document.createElement("tr");v.forEach(function(t){cell(tr,t)});body.appendChild(tr);
+    }
+    $("c_land").parentNode.style.fontSize=n>7?"13px":n>5?"15px":"17px";
+    var tt=(+tot.toFixed(6)).toFixed(6);
+
+    var txt="Farmer Card (unofficial)\nName: "+ne+"\nFarmer ID: "+$("fi").value+"\nDOB: "+fmtDate($("dob").value)+"\nMobile: "+$("mo").value+(vill?"\nVillage: "+vill:"")+"\nLand: "+tt+" ha";
+    $("qrtxt").textContent=txt;
+    try{var q=qrcode(0,"L");q.addData(txt);q.make();$("qrimg").src=q.createDataURL(6)}catch(e){}
+  }
+
+  function zoomFit(){var w=$("stage").clientWidth;$("zm").style.zoom=w<750?(w/750):1}
+  window.addEventListener("resize",zoomFit);
+
+  $("f").addEventListener("input",render);
+  $("full").addEventListener("change",render);
+  $("ph").addEventListener("change",function(e){
+    var f=e.target.files[0];if(!f){photoURL="";render();return}
+    var r=new FileReader();r.onload=function(){photoURL=r.result;render()};r.readAsDataURL(f);
+  });
+  $("addrow").addEventListener("click",function(){addRow()});
+  $("reset").addEventListener("click",function(){
+    $("f").reset();photoURL="";$("lb").textContent="";addRow();
+    ["ne","nl","dob","mo","aa","fi","ad"].forEach(function(k){$(k).value=""});render();
+  });
+
+  function check(){
+    var ok=$("f").reportValidity();
+    if(!ok)$("msg").textContent="Please fix the highlighted fields. Mobile needs 10 digits and Aadhaar needs 12 digits.";
+    return ok;
+  }
+  function snap(id){return html2canvas($(id),{scale:2,backgroundColor:null,useCORS:true,onclone:function(d){d.getElementById("zm").style.zoom=1;
+      /* html2canvas skips SVGs placed directly on the card (leaf, wave, ornament): wrap each in a div */
+      var list=d.querySelectorAll(".card > svg");
+      for(var i=0;i<list.length;i++){
+        var sv=list[i],w=d.createElement("div");
+        w.className=sv.getAttribute("class")||"";
+        w.setAttribute("style",(sv.getAttribute("style")||"")+";position:absolute;width:"+sv.getAttribute("width")+"px;height:"+sv.getAttribute("height")+"px");
+        sv.removeAttribute("class");sv.removeAttribute("style");sv.style.display="block";
+        sv.parentNode.replaceChild(w,sv);w.appendChild(sv);
+      }
+    }})}
+  function save(c,name){var a=document.createElement("a");a.download=name;a.href=c.toDataURL("image/png");a.click()}
+  function fid(){return $("fi").value.replace(/\W/g,"")||"farmer"}
+
+  function doPng(){
+    $("msg").textContent="Preparing your card…";
+    Promise.all([snap("front"),snap("back")]).then(function(c){
+      save(c[0],"Kisan_Card_"+fid()+"_front.png");setTimeout(function(){save(c[1],"Kisan_Card_"+fid()+"_back.png")},400);
+      $("msg").textContent="Downloaded front and back.";
+    }).catch(function(){$("msg").textContent="Could not create the image. Please try again."});
+  }
+  function doPdf(){
+    $("msg").textContent="Preparing your PDF…";
+    Promise.all([snap("front"),snap("back")]).then(function(c){
+      var J=window.jspdf.jsPDF,d=new J({unit:"mm",format:[101.6,152.4],orientation:"portrait"});
+      d.addImage(c[0].toDataURL("image/png"),"PNG",8,14.7,85.6,54.2);
+      d.addImage(c[1].toDataURL("image/png"),"PNG",8,83.5,85.6,54.2);
+      d.save("Kisan_Card_4x6_"+fid()+".pdf");$("msg").textContent="PDF downloaded. Print it at actual size on 4x6 paper.";
+    }).catch(function(){$("msg").textContent="Could not create the PDF. Please try again."});
+  }
+
+  /* ---------- ₹15 payment (UPI) ---------- */
+  var CFG=window.PAY_CONFIG;
+  var pendingFn=null;
+  function usedList(){try{return JSON.parse(localStorage.getItem("fc_used")||"[]")}catch(e){return[]}}
+  function markUsed(u){try{var l=usedList();l.push(u);localStorage.setItem("fc_used",JSON.stringify(l))}catch(e){}}
+  function upiLink(){
+    return "upi://pay?pa="+encodeURIComponent(CFG.upiId)+"&pn="+encodeURIComponent(CFG.payeeName)+
+      "&am="+CFG.amount+"&cu=INR&tn="+encodeURIComponent("Farmer card download");
+  }
+  function openPay(fn){
+    if(!check())return;
+    pendingFn=fn;$("pmsg").textContent="";$("utr").value="";
+    var l=upiLink();$("upilink").href=l;$("upiid").textContent=CFG.upiId;
+    if(CFG.qrImage){$("upiqr").src=CFG.qrImage}else{try{var q=qrcode(0,"M");q.addData(l);q.make();$("upiqr").src=q.createDataURL(5)}catch(e){}}
+    $("pay").style.display="flex";
+  }
+  function closePay(){$("pay").style.display="none";pendingFn=null}
+  $("dpng").addEventListener("click",function(){openPay(doPng)});
+  $("dpdf").addEventListener("click",function(){openPay(doPdf)});
+  $("pcancel").addEventListener("click",closePay);
+  $("paid").addEventListener("click",function(){
+    var u=$("utr").value.replace(/\s/g,"");
+    if(!/^\d{12}$/.test(u)){$("pmsg").textContent="Enter the 12-digit UTR / transaction ID from your UPI app.";return}
+    if(usedList().indexOf(u)>-1){$("pmsg").textContent="This transaction ID was already used. Please pay again for a new download.";return}
+    function ok(){markUsed(u);var f=pendingFn;closePay();if(f)f()}
+    if(CFG.verifyUrl){
+      $("pmsg").textContent="Verifying payment…";
+      fetch(CFG.verifyUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({utr:u,amount:CFG.amount})})
+        .then(function(r){return r.json()})
+        .then(function(d){if(d&&d.paid)ok();else $("pmsg").textContent="Payment not found yet. Wait a minute and try again."})
+        .catch(function(){$("pmsg").textContent="Could not verify. Please try again."});
+    }else ok();
+  });
+
+  $("ok").addEventListener("change",function(){$("go").disabled=!$("ok").checked});
+  $("go").addEventListener("click",function(){$("gate").style.display="none"});
+  $("no").addEventListener("click",function(){$("gmsg").textContent="You need to agree to continue using this tool."});
+
+  DEF.forEach(addRow);zoomFit();render();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(render);
+})();
+</script>
+</body>
+</html>
